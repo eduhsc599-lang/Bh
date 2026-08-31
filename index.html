@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>চিঠি দিবস</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --paper: #FFFFFF;
+    --ink: #2B2B2B;
+    --ink-soft: #6E6E6E;
+    --line: #E4E1DA;
+    --accent: #A9825A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Hind Siliguri', sans-serif;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .stage {
+    width: 100%;
+    max-width: 460px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    width: 34px;
+    height: 1px;
+    background: var(--accent);
+    margin: 0 auto 18px;
+  }
+
+  .title {
+    font-family: 'Tiro Bangla', serif;
+    font-weight: 400;
+    font-size: clamp(1.6rem, 5.5vw, 2rem);
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .subtitle {
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+    margin-bottom: 48px;
+  }
+
+  /* ENVELOPE */
+  .envelope-wrap {
+    perspective: 1400px;
+    margin: 0 auto;
+    width: min(300px, 78vw);
+  }
+
+  .envelope {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .env-back {
+    position: absolute;
+    inset: 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 16px 34px -18px rgba(43,43,43,0.25);
+  }
+
+  .env-letter-peek {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    top: -6%;
+    height: 76%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    transition: top 0.55s cubic-bezier(.34,1.4,.64,1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .env-letter-peek::before {
+    content: '';
+    width: 60%;
+    height: 2px;
+    background: var(--line);
+    box-shadow: 0 10px 0 var(--line), 0 20px 0 var(--line);
+  }
+
+  .env-front-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 55%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 0 0 4px 4px;
+    clip-path: polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%);
+    z-index: 2;
+  }
+
+  .env-flap {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 56%;
+    background: #F1EFE9;
+    border: 1px solid var(--line);
+    clip-path: polygon(0 0, 100% 0, 50% 92%);
+    transform-origin: top center;
+    transition: transform 0.5s cubic-bezier(.6,-0.2,.3,1.3);
+    z-index: 3;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .env-seal {
+    position: absolute;
+    top: 44%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    border-radius: 50%;
+    z-index: 4;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  }
+
+  .envelope.open .env-flap {
+    transform: rotateX(178deg);
+  }
+  .envelope.open .env-seal {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  .envelope.open .env-letter-peek {
+    top: -58%;
+  }
+
+  .hint {
+    margin-top: 20px;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    transition: opacity 0.4s ease;
+  }
+  .envelope.open ~ .hint { opacity: 0; }
+
+  /* LETTER MODAL */
+  .letter-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(43,43,43,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .letter-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .letter-paper {
+    background: var(--paper);
+    max-width: 540px;
+    width: 100%;
+    max-height: 86vh;
+    overflow-y: auto;
+    border-radius: 6px;
+    padding: 44px 36px 34px;
+    position: relative;
+    transform: translateY(24px) scale(0.97);
+    transition: transform 0.45s cubic-bezier(.2,1.2,.4,1);
+    box-shadow: 0 30px 60px -24px rgba(43,43,43,0.35);
+    border-top: 3px solid var(--accent);
+  }
+  .letter-overlay.show .letter-paper {
+    transform: translateY(0) scale(1);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: transparent;
+    border: 1px solid var(--line);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+  .close-btn:hover { background: var(--bg); }
+
+  .letter-heading {
+    font-family: 'Tiro Bangla', serif;
+    color: var(--ink);
+    font-size: 1.35rem;
+    text-align: center;
+    margin: 0 0 26px;
+  }
+
+  .letter-body p {
+    margin: 0 0 16px;
+    line-height: 1.9;
+    font-size: 1.02rem;
+    color: var(--ink);
+  }
+
+  .letter-body p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .signoff {
+    margin-top: 28px;
+    text-align: right;
+    font-family: 'Tiro Bangla', serif;
+    color: var(--accent);
+    font-size: 1.05rem;
+  }
+  .signoff span {
+    display: block;
+    font-family: 'Hind Siliguri', sans-serif;
+    color: var(--ink);
+    font-size: 1.02rem;
+    margin-top: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .env-flap, .env-letter-peek, .env-seal, .letter-paper, .letter-overlay { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="eyebrow"></div>
+  <h1 class="title">চিঠি দিবস</h1>
+  <p class="subtitle">প্রিয় ভাবির জন্য একটা চিঠি</p>
+
+  <div class="envelope-wrap">
+    <div class="envelope" id="envelope">
+      <div class="env-back"></div>
+      <div class="env-letter-peek"></div>
+      <div class="env-front-bottom"></div>
+      <div class="env-flap"></div>
+      <div class="env-seal"></div>
+    </div>
+  </div>
+  <p class="hint">খামটাতে ক্লিক করুন</p>
+</div>
+
+<div class="letter-overlay" id="overlay">
+  <div class="letter-paper">
+    <button class="close-btn" id="closeBtn" aria-label="বন্ধ করুন">✕</button>
+    <div class="letter-heading">প্রিয় ভাবি</div>
+    <div class="letter-body">
+      <p>কেমন আছেন? অনেক দিন কথা হয় না বলে ভাববেন না, আপনার দেবর আপনাকে ভুলে গেছে 🙂✌️।</p>
+      <p>আজকে চিঠি দিবস, জানেনই তো। আপনাকে চিঠি দেওয়ার কারণ হলো, আপনি আমাদের বন্ধুর জন্য অনেক গুরুত্বপূর্ণ একজন মানুষ।</p>
+      <p>আমরা চাই, আপনি আর স্বাধীন আল্লাহর রহমতে বাকিটা সময় একসাথেই থাকেন, সুন্দরভাবে একে অপরকে বুঝে।</p>
+      <p>বন্ধুকে আপনার হাতে তুলে দিয়েছি, দেখবেন মানুষের ভাবিদের মতো ওরে বন্দি করে আলাদা করে ফেলবেন না 😭👍।</p>
+      <p>বেশি লিখবো না, পরে বন্ধু মাইর দিবে 🙂।</p>
+      <p>পরবর্তী সময়ের জন্য শুভকামনা 🙂❤️।</p>
+    </div>
+    <div class="signoff">ইতি,<span>আপনার জাওরা দেবর 😜</span></div>
+  </div>
+</div>
+
+<script>
+  const envelope = document.getElementById('envelope');
+  const overlay = document.getElementById('overlay');
+  const closeBtn = document.getElementById('closeBtn');
+
+  envelope.addEventListener('click', () => {
+    envelope.classList.add('open');
+    setTimeout(() => {
+      overlay.classList.add('show');
+    }, 500);
+  });
+
+  function closeLetter() {
+    overlay.classList.remove('show');
+  }
+
+  closeBtn.addEventListener('click', closeLetter);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeLetter();
+  });
+</script>
+
+</body>
+</html>
